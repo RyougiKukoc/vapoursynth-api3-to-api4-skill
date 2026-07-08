@@ -1,0 +1,4 @@
+interface:
+  display_name: "VapourSynth API3 to API4"
+  short_description: "Convert legacy VapourSynth C/C++ plugins to API4."
+  default_prompt: "Use $vapoursynth-api3-to-api4 to migrate this VapourSynth API3 plugin project to API4."
