@@ -10,7 +10,17 @@ contains deterministic helper tools used by the skill.
 
 ## Install
 
-Install by cloning this repository directly into your Codex skills directory:
+Preferred in Codex: use `$skill-installer` and point it at this repository's
+root path, because the repository root itself is the skill directory:
+
+```text
+Use $skill-installer to install from GitHub repo
+RyougiKukoc/vapoursynth-api3-to-api4-skill with path . and name
+vapoursynth-api3-to-api4.
+```
+
+Manual fallback: clone this repository directly into your Codex skills
+directory:
 
 ```powershell
 git clone https://github.com/RyougiKukoc/vapoursynth-api3-to-api4-skill.git `
@@ -24,8 +34,8 @@ git clone https://github.com/RyougiKukoc/vapoursynth-api3-to-api4-skill.git `
   "$env:CODEX_HOME\\skills\\vapoursynth-api3-to-api4"
 ```
 
-You can also install from GitHub with Codex's skill installer script because
-the repository root itself is the skill directory:
+If you invoke Codex's helper script yourself instead of asking Codex to use
+`$skill-installer`, the repository root is still the selected skill path:
 
 ```powershell
 python install-skill-from-github.py `
@@ -33,6 +43,10 @@ python install-skill-from-github.py `
   --path . `
   --name vapoursynth-api3-to-api4
 ```
+
+Run that helper from the `skill-installer/scripts` directory, or otherwise make
+that directory importable, because the script imports its sibling
+`github_utils.py`.
 
 Restart Codex after installation so it picks up the new skill.
 
