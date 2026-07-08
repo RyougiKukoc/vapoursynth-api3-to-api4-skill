@@ -10,13 +10,20 @@ contains deterministic helper tools used by the skill.
 
 ## Install
 
-Preferred in Codex: use `$skill-installer` and point it at this repository's
-root path, because the repository root itself is the skill directory:
+This repository root is itself the skill directory. Any harness that supports a
+directory-based `SKILL.md` skill can install this repository as one folder
+named `vapoursynth-api3-to-api4`.
+
+### Codex
+
+Preferred in Codex: send Codex a prompt that explicitly asks it to use
+`$skill-installer`. This is a prompt for Codex, not a shell command:
 
 ```text
-Use $skill-installer to install from GitHub repo
+Use $skill-installer to install the skill from GitHub repo
 RyougiKukoc/vapoursynth-api3-to-api4-skill with path . and name
-vapoursynth-api3-to-api4.
+vapoursynth-api3-to-api4. After installation, tell me whether I need to
+restart Codex.
 ```
 
 Manual fallback: clone this repository directly into your Codex skills
@@ -50,6 +57,28 @@ that directory importable, because the script imports its sibling
 
 Restart Codex after installation so it picks up the new skill.
 
+### Claude Code
+
+Claude Code also uses directory-based `SKILL.md` skills, so this repository can
+be installed directly as a personal or project skill.
+
+Personal skill for all Claude Code projects:
+
+```powershell
+git clone https://github.com/RyougiKukoc/vapoursynth-api3-to-api4-skill.git `
+  "$HOME/.claude/skills/vapoursynth-api3-to-api4"
+```
+
+Project-local skill for only the current repository:
+
+```powershell
+git clone https://github.com/RyougiKukoc/vapoursynth-api3-to-api4-skill.git `
+  ".claude/skills/vapoursynth-api3-to-api4"
+```
+
+If you prefer not to duplicate the checkout, Claude Code also supports
+symlinking a skill directory into one of its skill roots.
+
 ## Update
 
 If you installed by `git clone`, update in place:
@@ -62,6 +91,12 @@ Or, with `CODEX_HOME`:
 
 ```powershell
 git -C "$env:CODEX_HOME\\skills\\vapoursynth-api3-to-api4" pull --ff-only
+```
+
+For Claude Code personal installs:
+
+```powershell
+git -C "$HOME/.claude/skills/vapoursynth-api3-to-api4" pull --ff-only
 ```
 
 ## Validate
