@@ -80,6 +80,15 @@ Registration string changes:
   `pcModifiable` only for plugin loaders or special cases that need API3-style
   post-load function registration.
 
+`VSPlugin *` belongs to a core. Do not store the initialization argument in a
+process-global variable and reuse it from callbacks: loading the same DLL in
+another core overwrites that variable, and destroying that core can leave a
+dangling pointer. For plugin-path or version helpers, resolve the plugin through
+`getPluginByID(identifier, core)` using the callback's core, or keep the handle
+in registration data scoped to that core. Review all uses, including bundled
+model-path lookup. A two-core test can detect this even if ordinary single-core
+rendering passes.
+
 ## Type Renames
 
 | API3 | API4 |
@@ -163,6 +172,12 @@ Rules:
 - Replace `createFilter(..., init, getFrame, free, filterMode, flags, data, core)`
   with `createVideoFilter(..., vi, getFrame, free, filterMode, deps, numDeps,
   data, core)`.
+- When instance data is held in a C++ smart pointer, do not pass both
+  `&d->vi` and `d.release()` from the same smart pointer in one
+  `createVideoFilter(...)` call. Function argument evaluation order can release
+  the pointer before another argument reads from it. Take a stable raw pointer
+  first, pass `&data->vi` and `data`, and release ownership only after filter
+  creation succeeds.
 - Convert `nfMakeLinear` to `setLinearFilter(node)` only when the filter uses
   linear caching or `cacheFrame`.
 - Convert `nfNoCache` / `nfIsCache` only after reviewing intent. API4 cache
@@ -227,6 +242,12 @@ Update local stride variables from `int` to `ptrdiff_t` when they receive
 Also review helper/processing function parameters that receive those stride
 values; update them to `ptrdiff_t` when practical instead of silently narrowing
 back to `int`.
+
+For external tensor buffers, use the channel pitch and element size of the
+actual selected buffer. An fp32 staging buffer can have a different aligned
+channel pitch from its fp16 counterpart even when their dimensions match.
+Test dimensions whose plane area crosses the alignment boundary, plus both
+input/output precision directions; square power-of-two cases can hide this.
 
 `getWritePtr` invalidates read pointers to the same frame in API4. Avoid
 reordering pointer acquisition unless you have checked the frame usage.

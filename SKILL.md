@@ -1,13 +1,19 @@
 ---
 name: vapoursynth-api3-to-api4
-description: Convert legacy VapourSynth API3 C/C++ plugin projects to the API4 plugin interface. Use when working on VapourSynth plugins that include VapourSynth.h/VSHelper.h, export VapourSynthPluginInit, use VSFrameRef/VSNodeRef/VSFormat, prop* map functions, createFilter/VSFilterInit, or need migration to current VapourSynth R74+ / R77-style SDKs. Also use when the migration task includes modern Windows CI, R77-style plugin packaging, GitHub Release assets, wheel/pyproject packaging, or pip-installable release-backed plugin delivery.
+description: Convert legacy VapourSynth API3 C/C++ plugin projects to the API4 plugin interface. Use when working on VapourSynth plugins that include VapourSynth.h/VSHelper.h, export VapourSynthPluginInit, use VSFrameRef/VSNodeRef/VSFormat, prop* map functions, createFilter/VSFilterInit, or need migration to current VapourSynth R74+ / R77-style SDKs. Also use to review an existing migration against another implementation, or when migration includes modern Windows CI, R77-style plugin packaging, GitHub Release assets, wheel/pyproject packaging, or pip-installable release-backed plugin delivery.
 ---
 
 # VapourSynth API3 to API4
 
+For review of an existing migration against upstream work or another fork, read
+[references/comparative-review.md](references/comparative-review.md). Reuse
+verified baseline/build evidence and continue the source review when a missing
+toolkit or GPU blocks new execution. Record that verification gap; a
+retrospective review does not require restarting baseline setup.
+
 ## Four-Phase Migration Model
 
-Use this model for real plugin projects. Keep API migration, behavior
+Use this model when performing a migration. Keep API migration, behavior
 verification, and packaging modernization separate unless the user explicitly
 asks to combine them.
 

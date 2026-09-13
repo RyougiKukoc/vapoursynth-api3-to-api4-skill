@@ -396,11 +396,12 @@ def manual_line_hits_by_name(hits: list[Hit]) -> dict[str, int]:
 
 
 def has_temporal_request_pattern(text: str) -> bool:
-    if re.search(r"requestFrameFilter\s*\(\s*(?:n\s*[-+]|[^,\n]*[-+]\s*n\b)", text):
+    frame_request = r"(?:requestFrameFilter|getFrameFilter)\s*\("
+    if re.search(frame_request + r"[^\n;]{0,200}(?:\bn\s*[-+]|[-+]\s*n\b)", text):
         return True
     return bool(
         re.search(r"\b[A-Za-z_][A-Za-z0-9_]*\s*=\s*n\s*[-+]", text)
-        and re.search(r"requestFrameFilter\s*\(\s*[A-Za-z_][A-Za-z0-9_]*\s*,", text)
+        and re.search(frame_request + r"\s*[A-Za-z_][A-Za-z0-9_]*\s*,", text)
     )
 
 

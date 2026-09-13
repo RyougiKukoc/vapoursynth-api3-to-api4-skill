@@ -54,7 +54,7 @@ def make_api3_fixture(root: Path) -> Path:
             const char *runtime = "OpenCL";
             (void)runtime;
             if (activationReason == arInitial)
-                vsapi->requestFrameFilter(n - d->radius, d->node, frameCtx);
+                vsapi->requestFrameFilter(VSMAX(0, n - d->radius), d->node, frameCtx);
             else if (activationReason == arFrameReady)
                 vsapi->queryCompletedFrame(NULL, frameCtx);
             return NULL;

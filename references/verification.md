@@ -9,6 +9,12 @@ build/load the API4 candidate, run paired behavior reports in separate Python
 processes, then validate packaging/release artifacts. A successful API4 compile
 is only the middle of this sequence, not the end.
 
+For retrospective review or multiple backends/CUDA release variants, use the
+coverage and provenance guidance in
+[comparative-review.md](comparative-review.md). Keep build, load, deferred
+JIT/engine execution, paired behavior, and installed-artifact evidence tied to
+the backend and variant actually tested.
+
 ## User Intake
 
 When behavior verification is possible, ask the user for these concrete items:
@@ -76,6 +82,12 @@ print(core.namespace.Filter)
 Expected result: no load error, no API3 deprecation warning, expected namespace,
 and API4 media types such as `vnode` in the signature.
 
+The short example assumes an already clean environment. For isolation, use the
+bundled case runner's supported environment policy with `DISABLE_AUTO_LOADING`.
+A helper that tries unsupported core constructors and then falls back to
+`vs.core` has lost that guarantee. Verify the actual core and loaded plugin
+paths; fail the isolation check instead of silently enabling autoload.
+
 Important: Gate 3 is not behavior verification. A successful explicit load or
 single-sided API4 runtime smoke must not be summarized as "the migration works"
 unless Gate 4 is also complete or explicitly blocked.
@@ -106,6 +118,13 @@ skipping the release-upload step. That is expected when upload is gated on tag
 or release events. Verify release upload by checking the workflow condition and,
 when a release is created, by downloading the release asset and repeating the
 package path inspection.
+
+When a release asset is replaced under an existing tag or URL, an earlier green
+install smoke may have consumed the previous binary. Match the tested asset's
+hash and source revision to the published payload. Run the install gate after
+publication completes, or verify that publication uploaded the exact immutable
+payload already tested. Independent build/upload and install jobs starting on
+the same event do not establish this ordering.
 
 If the repository is meant to support
 `pip install "package-name @ git+https://...git"`, Gate 5 also includes
@@ -241,6 +260,16 @@ The runner records:
 The comparer ignores environment metadata and compares rendered behavior
 strictly unless `--plane-stats-eps` is explicitly provided.
 
+When a project supplies its own numeric comparer, verify that failed workers,
+missing reports, and rejected comparisons produce a nonzero parent exit code.
+Handle NaN and infinity explicitly before numeric reductions: expressions such
+as `max(0.0, nan)` can retain zero and falsely report a match. Finite-versus-NaN
+must fail; any policy for matching non-finite outputs needs an explicit reason.
+Baseline/candidate agreement can also preserve an inherited defect. For a
+suspected parameter bug, add a case with an independent expected result or
+parameter-sensitivity check, rather than treating two equally wrong results as
+proof of correctness.
+
 ## Choosing Cases
 
 For each plugin, include at least:
@@ -258,6 +287,10 @@ For each plugin, include at least:
 - Deterministic generated clips whose values change across frames for temporal
   filters. A flat all-zero source may pass load/render checks without exercising
   the filter's temporal decision logic.
+- When generating frames with `core.std.ModifyFrame` for R73-compatible cases,
+  keep the callback argument named `f` or accept keyword arguments. Older
+  bindings may pass the source frame with the `f=` keyword, so a callback such
+  as `def fill_frame(n, frame):` can fail even though it is clear to readers.
 - Error cases for invalid ranges, duplicate planes, unsupported formats, and
   missing required dependencies.
 
