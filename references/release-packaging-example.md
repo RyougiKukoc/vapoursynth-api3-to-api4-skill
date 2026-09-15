@@ -92,6 +92,12 @@ name has not been decided yet, decide it first and then update:
 - Keep the tested native package zip as a Release asset even if you also
   publish a direct wheel. The zip is the reusable payload for the VCS install
   path.
+- When updating a mutable variant Release, delete every old wheel matching the
+  distribution before uploading the current platform wheels. Then list the
+  Release assets and assert the exact expected set: current native zip(s) plus
+  current wheel(s). `gh release upload --clobber` only replaces equal names; it
+  leaves older versioned wheel filenames behind, where users can accidentally
+  select stale payloads.
 - Keep the mapping from package version to Release tag deterministic and
   documented. The simplest rule is `1.0` -> `v1.0`, but a custom template is
   acceptable only if the build hook, workflow, release naming, and install
