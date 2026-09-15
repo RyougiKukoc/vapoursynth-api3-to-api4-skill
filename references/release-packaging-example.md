@@ -157,6 +157,18 @@ the Linux file as ``plugin.so``, and declare all three native suffixes in the
 wheel artifacts list. Do not run a Windows/MSYS2 preparation script from a
 non-Windows fallback.
 
+Release assets are optional accelerators, not the implementation of source
+installation. Dispatch the asset lookup by the running platform and
+architecture. A Linux/macOS install must never look for a Windows ``.dll``;
+a Windows install must never accept a Linux ``.so``. When no current-platform
+asset exists, including a deliberately unsupported macOS Release line, run the
+repository's native Meson/CMake/Autotools/Cargo build and stage the actual
+output suffix (``.so`` or ``.dylib``) with its manifest and runtime files.
+Test this branch with the force-build option on a platform that has a Release
+asset, and test the ordinary no-asset branch on every platform that is not
+published. Record a missing host SDK/toolchain as a blocked gate; do not fall
+back to another platform's binary.
+
 Validate this path in a clean Linux container with ``build-essential`` and
 ``pkg-config`` installed: build the wheel, inspect it for
 ``vapoursynth/plugins/plugin/plugin.so`` and ``manifest.vs``, install the
