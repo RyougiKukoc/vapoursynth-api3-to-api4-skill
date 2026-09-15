@@ -49,6 +49,15 @@ add an equivalent compatible include directory). Do not mutate the installed
 wheel and do not change Windows-only SDK shims merely to make a Linux fallback
 compile.
 
+An R79 wheel may be too new to install into a conservative manylinux builder
+even though its extracted headers and `vapoursynth.pc` are sufficient to build
+a plugin. In that CI-only situation, download and extract the selected wheel,
+point `PKG_CONFIG_PATH` at the extracted metadata, and invoke the frontend's
+explicit no-isolation dependency-check bypass. Keep `VapourSynth` in
+`build-system.requires` and separately test an ordinary isolated PEP 517
+install on an R79-capable runtime; the CI bypass is not evidence that users'
+isolated source builds can omit the SDK requirement.
+
 ## Release payload gate
 
 For a Linux Release zip, validate the actual uploaded asset, not a local build
