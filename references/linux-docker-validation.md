@@ -40,6 +40,15 @@ caller-provided entries. Do not treat a pre-existing path as proof that it
 contains `vapoursynth.pc`; hosted CI environments commonly set it for Python
 or unrelated libraries.
 
+Some Linux VapourSynth wheels keep `VapourSynth4.h` and `VSHelper4.h` directly
+under `vapoursynth/include`, while legacy cross-platform plugin source uses
+`#include <vapoursynth/VapourSynth4.h>`. Confirm the actual header layout as
+well as the pkg-config include flag. If these forms differ, create a temporary
+build-only include root containing `vapoursynth/` with the wheel headers (or
+add an equivalent compatible include directory). Do not mutate the installed
+wheel and do not change Windows-only SDK shims merely to make a Linux fallback
+compile.
+
 ## Release payload gate
 
 For a Linux Release zip, validate the actual uploaded asset, not a local build
