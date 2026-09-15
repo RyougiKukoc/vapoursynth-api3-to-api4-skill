@@ -72,6 +72,14 @@ can reject a newly named language mode (for example, GCC 10 rejects Meson's
 that the project actually requires, keep the version change reviewable, and
 repeat the ABI inspection after the adjustment.
 
+For a plugin with optional OpenMP, regard `libgomp` as a runtime dependency,
+not merely a build detail. Smoke the uploaded payload in fresh processes with
+more than one OpenMP thread before bundling a libgomp copy. If that combination
+is unstable across the conservative builder and modern runtime, explicitly
+disable the optional OpenMP path for the Linux release and Linux fallback,
+document the serial-performance tradeoff, and verify its frame output rather
+than shipping a runtime library that only passes a loader check.
+
 ## Release payload gate
 
 For a Linux Release zip, validate the actual uploaded asset, not a local build
