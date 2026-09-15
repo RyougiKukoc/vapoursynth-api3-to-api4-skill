@@ -42,7 +42,7 @@ docker run --rm `
   -e https_proxy=http://host.docker.internal:7890 `
   -v "${repo}:/workspace:ro" `
   vpy-api4-vs79-validation bash -lc `
-  'mkdir /release && curl -fsSL https://github.com/RyougiKukoc/vapoursynth-tcomb-api4/releases/download/v4.4/tcomb-linux-x86_64.zip -o /release/tcomb.zip && python tools/ci_smoke_package.py --artifact-zip /release/tcomb.zip --json'
+  'mkdir /release && curl -fsSL https://github.com/RyougiKukoc/vapoursynth-tcomb-api4/releases/download/v4.2/tcomb-linux-x86_64.zip -o /release/tcomb.zip && python tools/ci_smoke_package.py --artifact-zip /release/tcomb.zip --json'
 ```
 
 The direct package smoke should prove all of the following:
@@ -61,7 +61,7 @@ run the installed-wheel autoload smoke.
 
 ## TComb evidence
 
-TComb v4.4 established this procedure with the uploaded
+TComb v4.2 established this procedure with the uploaded
 `tcomb-linux-x86_64.zip`: explicit loading of `tcomb.so` succeeded under R79,
 frames 0, 3, and 11 from a static YUV420P8 case had the same SHA-256,
 dimensions were 64x48, and an RGB input was rejected. Its CI repeats the same
