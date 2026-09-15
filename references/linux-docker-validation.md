@@ -28,6 +28,12 @@ plugin intended for that runtime must not claim a lower end-to-end runtime
 floor. A plugin may have lower GLIBC symbol requirements, but that does not
 make an incompatible VapourSynth runtime usable.
 
+When a native build obtains headers and `vapoursynth.pc` from the installed
+wheel, prepend `vapoursynth/pkgconfig` to `PKG_CONFIG_PATH` while retaining any
+caller-provided entries. Do not treat a pre-existing path as proof that it
+contains `vapoursynth.pc`; hosted CI environments commonly set it for Python
+or unrelated libraries.
+
 ## Release payload gate
 
 For a Linux Release zip, validate the actual uploaded asset, not a local build
