@@ -58,6 +58,13 @@ explicit no-isolation dependency-check bypass. Keep `VapourSynth` in
 install on an R79-capable runtime; the CI bypass is not evidence that users'
 isolated source builds can omit the SDK requirement.
 
+Manylinux images can expose a versioned Python interpreter while omitting that
+interpreter's `bin` directory from `PATH`. After installing Meson with
+`$PYTHON -m pip install meson`, invoke it as
+`$PYTHON -m mesonbuild.mesonmain` (or explicitly prepend the scripts
+directory) instead of assuming a bare `meson` command is available. Test this
+inside the selected builder image before making it the release path.
+
 ## Release payload gate
 
 For a Linux Release zip, validate the actual uploaded asset, not a local build
