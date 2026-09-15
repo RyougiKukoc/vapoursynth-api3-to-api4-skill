@@ -69,6 +69,12 @@ Common places to update:
 
 Prefer checking for `VapourSynth4.h` when the project is plugin-only.
 
+When a `MODULE` or `SHARED` plugin target links CMake `OBJECT` libraries,
+explicitly set `POSITION_INDEPENDENT_CODE ON` on every object target. PIC on
+the final plugin does not reliably propagate to separately-defined object
+targets. This can pass on a modern linker and then fail in a conservative
+manylinux build with relocations such as `R_X86_64_32` against pthread symbols.
+
 ## Meson
 
 Common places to update:
@@ -160,6 +166,12 @@ Checklist:
   the source-install path consumes a locally produced Release zip via the
   hook's explicit prebuilt-URL override. This catches mismatches between the
   packaged artifact and the VCS-install hook before tag publication.
+
+For mutable variant refs, force-updating a tag can generate both deletion and
+creation push events. Put ref-scoped workflow concurrency around the full
+build/publish workflow and cancel superseded runs, otherwise duplicate jobs can
+race to overwrite the same Release assets. Still validate each variant ref one
+at a time, and remove a failed tag/Release before retrying it.
 
 This is often cleaner than a local build because the CI already knows the
 project's non-VapourSynth dependencies. The local machine can stay focused on
