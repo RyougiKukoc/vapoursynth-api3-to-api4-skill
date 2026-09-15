@@ -19,9 +19,15 @@ docker build `
 ```
 
 The image contains Debian Bookworm, Python 3.13, VapourSynth R79, a native
-compiler, pkg-config, Meson/Ninja, Hatchling, curl, git, and unzip. It does not
+compiler, CMake, pkg-config, Meson/Ninja, Hatchling, curl, git, and unzip. It does not
 contain a target plugin. Rebuild it only when the declared baseline changes;
 reuse it for each plugin test.
+
+The examples deliberately mount a repository read-only. Copy the source into a
+container work directory before running a build or a command that can create
+`__pycache__`; alternatively set `PYTHONDONTWRITEBYTECODE=1` for a read-only
+static check. Do not make the source mount writable merely to accommodate
+generated build output.
 
 VapourSynth R79's Linux wheel is tagged `manylinux_2_27_x86_64`, so a release
 plugin intended for that runtime must not claim a lower end-to-end runtime

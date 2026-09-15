@@ -3,6 +3,7 @@ FROM python:3.13-bookworm
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         build-essential \
+        cmake \
         curl \
         git \
         pkg-config \
