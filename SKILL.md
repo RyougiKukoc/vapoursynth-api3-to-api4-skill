@@ -102,6 +102,10 @@ review.
    pip-installable plugin repository, a GitHub Release backed
    `pip install "package-name @ git+https://...git"` path, or a Windows-first
    example that avoids manual DLL copying.
+   Read `references/linux-docker-validation.md` when validating a Linux
+   plugin, a Linux Release payload, a glibc policy, or a Release-backed Linux
+   VCS install. Use its Dockerfile as the baseline environment before adding
+   a target plugin.
 6. Migrate in this order:
    includes and types, map/property calls, entry point and registration strings,
    filter creation/lifecycle, format handling, helper functions, build files.
