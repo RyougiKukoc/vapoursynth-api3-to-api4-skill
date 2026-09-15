@@ -130,6 +130,68 @@ VapourSynth wheel metadata into both `PKG_CONFIG` and `PKG_CONFIG_PATH`
 automatically when possible, instead of requiring every caller to remember both
 variables manually.
 
+## Linux local-build fallback
+
+A Windows Release-backed package must not assume its fallback is Windows-only.
+On Linux, prefer compiling a native ``.so`` from the same VCS source when the
+plugin's upstream build system supports it. A current Linux VapourSynth pip
+wheel places API4 headers, ``libvapoursynth``, and ``vapoursynth.pc`` below its
+Python package directory, so the ``.pc`` file is not normally on the system
+pkg-config search path. A Hatch build hook can discover it without hard-coding
+a Python installation prefix:
+
+```python
+try:
+    import vapoursynth
+except ImportError:
+    pass
+else:
+    pkgconfig_dir = Path(vapoursynth.__file__).resolve().parent / "pkgconfig"
+    if pkgconfig_dir.is_dir() and "PKG_CONFIG_PATH" not in env:
+        env["PKG_CONFIG_PATH"] = str(pkgconfig_dir)
+```
+
+The hook must then locate platform-native artifacts (for example
+``libplugin.so`` from Meson on Linux and ``plugin.dll`` on Windows), package
+the Linux file as ``plugin.so``, and declare all three native suffixes in the
+wheel artifacts list. Do not run a Windows/MSYS2 preparation script from a
+non-Windows fallback.
+
+Validate this path in a clean Linux container with ``build-essential`` and
+``pkg-config`` installed: build the wheel, inspect it for
+``vapoursynth/plugins/plugin/plugin.so`` and ``manifest.vs``, install the
+wheel, call ``core.std.LoadPlugin`` with that installed ``.so``, and request a
+deterministic frame. This is a packaging/runtime smoke test, not an API3/API4
+behavior comparison.
+
+### Release-backed Linux ABI policy
+
+When a project publishes Linux payloads, make Linux mirror Windows: publish a
+top-level plugin-directory zip for the VCS hook and a direct-install wheel on
+the same Git tag. Build the native plugin in a conservative manylinux
+container, then run the VapourSynth runtime smoke in a separate modern Linux
+job that can install the target VapourSynth wheel.
+
+The build job may download and extract a target-platform VapourSynth wheel
+solely for API4 headers and ``vapoursynth.pc``; it need not execute that wheel
+inside the older build container. Explicitly set ``PKG_CONFIG_PATH`` to the
+extracted package's ``vapoursynth/pkgconfig`` directory.
+
+Do not rely on Hatchling's host platform-tag inference for a payload-only
+plugin wheel. Let CI supply a project-specific platform-tag override after
+testing the binary, for example ``manylinux_2_27_x86_64`` when that is the
+published VapourSynth runtime baseline. Extract the final wheel and inspect
+the packaged ``.so`` with ``readelf --version-info``; fail if its highest
+``GLIBC_X.Y`` symbol exceeds the documented build policy. This avoids both an
+incorrect generic ``linux_x86_64`` tag and claiming a newer ABI than the
+plugin requires.
+
+Keep the force-build environment variable functional on Linux. It is the
+escape hatch for users who provide a compatible local VapourSynth SDK/runtime
+or need a platform not covered by the Release asset. Tag publication should
+wait for Windows and Linux package/runtime smoke jobs, then use one publish
+job to upload all platform assets to avoid release creation races.
+
 ## Verification requirements
 
 Do not call this packaging pattern complete unless all of these are checked:
