@@ -65,6 +65,24 @@ the documented `git+https` ref. Inspect pip output to confirm the hook selected
 the platform Release asset rather than silently compiling from source, then
 run the installed-wheel autoload smoke.
 
+## CUDA RTC payloads
+
+Validate each CUDA dependency line in a separate environment. Do not install
+or merge payloads built for two CUDA lines into one plugin directory. A Linux
+CUDA Release payload should record its toolkit version, `readelf` GLIBC and
+GLIBCXX requirements, `ldd` dependencies, NVIDIA driver, GPU name, and compute
+capability. A loader-only smoke is insufficient: invoke the RTC filter and
+request frames so NVRTC actually compiles the generated kernel on the target
+driver and GPU.
+
+When a CUDA plugin statically links `libstdc++` or `libgcc` to keep a portable
+ABI, hide archive symbols from the dynamic export table, for example with
+`-Wl,--exclude-libs,ALL` on ELF. Otherwise those symbols can interpose with the
+host C++ runtime already loaded by VapourSynth or Python and corrupt seemingly
+unrelated operations such as generated NVRTC source construction. Recheck both
+the ABI inspection and the real RTC compile-and-frame smoke after changing
+link options.
+
 ## TComb evidence
 
 TComb v4.2 established this procedure with the uploaded
