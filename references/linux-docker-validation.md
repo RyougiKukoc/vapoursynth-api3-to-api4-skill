@@ -65,6 +65,13 @@ interpreter's `bin` directory from `PATH`. After installing Meson with
 directory) instead of assuming a bare `meson` command is available. Test this
 inside the selected builder image before making it the release path.
 
+Before committing to a conservative builder, run its Meson configure step
+against the project's declared `cpp_std` or `c_std`. An older builder compiler
+can reject a newly named language mode (for example, GCC 10 rejects Meson's
+`c++23` option even when the source only needs C++20). Use the oldest standard
+that the project actually requires, keep the version change reviewable, and
+repeat the ABI inspection after the adjustment.
+
 ## Release payload gate
 
 For a Linux Release zip, validate the actual uploaded asset, not a local build
