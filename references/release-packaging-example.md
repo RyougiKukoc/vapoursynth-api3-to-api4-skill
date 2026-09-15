@@ -28,7 +28,7 @@ example:
 - a plugin DLL plus data files
 - a plugin DLL plus support runtime DLLs
 
-It is especially good for R77-style installs where plugin files live under:
+It is especially good for current API4 installs where plugin files live under:
 
 ```text
 site-packages/vapoursynth/plugins/plugin-name/

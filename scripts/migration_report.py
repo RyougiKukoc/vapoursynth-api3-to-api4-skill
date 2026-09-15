@@ -396,12 +396,11 @@ def manual_line_hits_by_name(hits: list[Hit]) -> dict[str, int]:
 
 
 def has_temporal_request_pattern(text: str) -> bool:
-    frame_request = r"(?:requestFrameFilter|getFrameFilter)\s*\("
-    if re.search(frame_request + r"[^\n;]{0,200}(?:\bn\s*[-+]|[-+]\s*n\b)", text):
+    if re.search(r"requestFrameFilter\s*\(\s*(?:n\s*[-+]|[^,\n]*[-+]\s*n\b)", text):
         return True
     return bool(
         re.search(r"\b[A-Za-z_][A-Za-z0-9_]*\s*=\s*n\s*[-+]", text)
-        and re.search(frame_request + r"\s*[A-Za-z_][A-Za-z0-9_]*\s*,", text)
+        and re.search(r"requestFrameFilter\s*\(\s*[A-Za-z_][A-Za-z0-9_]*\s*,", text)
     )
 
 
@@ -435,7 +434,7 @@ def recommended_steps(hits: list[Hit], project_text: str, risk_gates: list[RiskG
     if rules & {"range-property"} or "range property" in manual_lines:
         steps.append("Review _ColorRange manually; do not rename to _Range without flipping full/limited values.")
     steps.extend(risk_followup_steps(risk_gates))
-    steps.append("Build against VapourSynth R77 headers and rerun scan_api3.py until no API3 markers remain.")
+    steps.append("Build against the target R74+ API4 headers and rerun scan_api3.py until no API3 markers remain.")
     return steps
 
 

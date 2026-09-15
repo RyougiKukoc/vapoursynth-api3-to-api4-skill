@@ -80,15 +80,6 @@ Registration string changes:
   `pcModifiable` only for plugin loaders or special cases that need API3-style
   post-load function registration.
 
-`VSPlugin *` belongs to a core. Do not store the initialization argument in a
-process-global variable and reuse it from callbacks: loading the same DLL in
-another core overwrites that variable, and destroying that core can leave a
-dangling pointer. For plugin-path or version helpers, resolve the plugin through
-`getPluginByID(identifier, core)` using the callback's core, or keep the handle
-in registration data scoped to that core. Review all uses, including bundled
-model-path lookup. A two-core test can detect this even if ordinary single-core
-rendering passes.
-
 ## Type Renames
 
 | API3 | API4 |
@@ -172,12 +163,6 @@ Rules:
 - Replace `createFilter(..., init, getFrame, free, filterMode, flags, data, core)`
   with `createVideoFilter(..., vi, getFrame, free, filterMode, deps, numDeps,
   data, core)`.
-- When instance data is held in a C++ smart pointer, do not pass both
-  `&d->vi` and `d.release()` from the same smart pointer in one
-  `createVideoFilter(...)` call. Function argument evaluation order can release
-  the pointer before another argument reads from it. Take a stable raw pointer
-  first, pass `&data->vi` and `data`, and release ownership only after filter
-  creation succeeds.
 - Convert `nfMakeLinear` to `setLinearFilter(node)` only when the filter uses
   linear caching or `cacheFrame`.
 - Convert `nfNoCache` / `nfIsCache` only after reviewing intent. API4 cache
@@ -242,12 +227,6 @@ Update local stride variables from `int` to `ptrdiff_t` when they receive
 Also review helper/processing function parameters that receive those stride
 values; update them to `ptrdiff_t` when practical instead of silently narrowing
 back to `int`.
-
-For external tensor buffers, use the channel pitch and element size of the
-actual selected buffer. An fp32 staging buffer can have a different aligned
-channel pitch from its fp16 counterpart even when their dimensions match.
-Test dimensions whose plane area crosses the alignment boundary, plus both
-input/output precision directions; square power-of-two cases can hide this.
 
 `getWritePtr` invalidates read pointers to the same frame in API4. Avoid
 reordering pointer acquisition unless you have checked the frame usage.
@@ -384,7 +363,7 @@ Stop and reason carefully when these appear:
 - integer scaling, rounding, or SIMD changes mixed into an upstream API4
   migration commit
 
-## Evidence From R73/R77 Research
+## Evidence From R73 and API4 Research
 
 - R73 still says general API3 plugin support remains "for now", while API R3
   headers are no longer distributed with Windows binaries.
@@ -392,7 +371,7 @@ Stop and reason carefully when these appear:
   renames, value-style video formats, `VapourSynthPluginInit2`, `map*`
   property APIs, `createVideoFilter`, `frameData` scratch space, audio support,
   per-core message handlers, and helper renames.
-- R77 source still contains an API3 compatibility path, but it logs a
-  deprecation warning when loading API3 plugins.
-- R77 SDK examples use `VapourSynth4.h`, `VSHelper4.h`,
+- Current API4 releases may retain an API3 compatibility path, but it is
+  deprecated and is not the target for migrated plugins.
+- Current API4 SDK examples use `VapourSynth4.h`, `VSHelper4.h`,
   `VapourSynthPluginInit2`, `VSPLUGINAPI`, `map*`, and `createVideoFilter`.

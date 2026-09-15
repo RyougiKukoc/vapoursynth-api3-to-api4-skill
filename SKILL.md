@@ -1,19 +1,13 @@
 ---
 name: vapoursynth-api3-to-api4
-description: Convert legacy VapourSynth API3 C/C++ plugin projects to the API4 plugin interface. Use when working on VapourSynth plugins that include VapourSynth.h/VSHelper.h, export VapourSynthPluginInit, use VSFrameRef/VSNodeRef/VSFormat, prop* map functions, createFilter/VSFilterInit, or need migration to current VapourSynth R74+ / R77-style SDKs. Also use to review an existing migration against another implementation, or when migration includes modern Windows CI, R77-style plugin packaging, GitHub Release assets, wheel/pyproject packaging, or pip-installable release-backed plugin delivery.
+description: Convert legacy VapourSynth API3 C/C++ plugin projects to the API4 plugin interface. Use when working on VapourSynth plugins that include VapourSynth.h/VSHelper.h, export VapourSynthPluginInit, use VSFrameRef/VSNodeRef/VSFormat, prop* map functions, createFilter/VSFilterInit, or need migration to an R74+ or current API4 SDK. Also use when the migration task includes modern Windows CI, API4-compatible plugin packaging, GitHub Release assets, wheel/pyproject packaging, or pip-installable release-backed plugin delivery.
 ---
 
 # VapourSynth API3 to API4
 
-For review of an existing migration against upstream work or another fork, read
-[references/comparative-review.md](references/comparative-review.md). Reuse
-verified baseline/build evidence and continue the source review when a missing
-toolkit or GPU blocks new execution. Record that verification gap; a
-retrospective review does not require restarting baseline setup.
-
 ## Four-Phase Migration Model
 
-Use this model when performing a migration. Keep API migration, behavior
+Use this model for real plugin projects. Keep API migration, behavior
 verification, and packaging modernization separate unless the user explicitly
 asks to combine them.
 
@@ -34,7 +28,7 @@ asks to combine them.
    optimizations, and packaging changes out of the pure API patch unless they
    are required to compile or preserve behavior.
 3. **Compare behavior.** Build the API4 candidate, explicitly load it in a
-   clean R74+/R77 environment, and compare against the API3 baseline in
+   clean R74+ environment, and compare against the API3 baseline in
    separate Python processes. Use deterministic generated clips for normal
    filters and deterministic real media for source readers. Compare hashes,
    frame properties, dimensions, formats, error paths, and `PlaneStats`. When
@@ -43,7 +37,7 @@ asks to combine them.
    and report the exact match result side by side.
 4. **Modernize build and packaging.** Only after API behavior is understood,
    clean up CI/build/release flows. Reuse existing GitHub Actions where
-   possible, retarget VapourSynth SDK/header discovery to R74+/R77, prefer
+   possible, retarget VapourSynth SDK/header discovery to an R74+ API4 SDK, prefer
    package-manager dependencies over hand-built ones when practical, and verify
    released artifacts with package layout and load tests.
 

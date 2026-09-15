@@ -10,11 +10,6 @@ minimum API-specific include/header/link pieces for the API4 candidate. After
 behavior verification, clean up CI, package-manager dependency setup, and
 release artifact layout as separate work.
 
-For comparison with another project's build or for fixed CUDA release variants,
-read [comparative-review.md](comparative-review.md). Its release matrix records
-the toolkit, compiler, runtime, GPU targets, and artifact identity together;
-copying a newer project's flags or dependency updates can change that contract.
-
 ## General Checks
 
 - Before trying to build locally, do a narrow environment probe and record the
@@ -63,23 +58,6 @@ directories in that layout. If an extracted wheel's `prefix`, `includedir`, or
 `.pc` file for CI instead of hard-coding many include/link paths in build
 scripts.
 
-Some SDK checkouts and wheels expose headers directly under a flat `include`
-directory, while migrated source commonly includes
-`<vapoursynth/VapourSynth4.h>` and `<vapoursynth/VSHelper4.h>`. For CI and
-local forward tests, prefer generating a narrow temporary
-`include/vapoursynth/` shim beside the generated `.pc` file or extracted SDK
-root. Do not rewrite project source includes or mutate the downloaded SDK just
-to paper over a local layout mismatch.
-
-With MSYS2 `pkgconf`, the default `--define-prefix` behavior can rewrite the
-`prefix` variable based on where the `.pc` file is located. If a generated
-`vapoursynth.pc` is placed in an arbitrary directory such as `_deps/pkgconfig`,
-`pkg-config --cflags vapoursynth` may unexpectedly resolve to `_deps/../include`
-or the repository's `include` directory. Prefer placing the normalized file
-under the actual SDK package root, for example
-`<extracted-wheel>/vapoursynth/lib/pkgconfig/vapoursynth.pc`, or deliberately
-disable prefix rewriting when invoking pkg-config.
-
 ## CMake
 
 Common places to update:
@@ -116,12 +94,6 @@ prepend the active MSYS2 environment's `bin` directory and `usr/bin` to `PATH`
 before compiling. Otherwise GCC may find `gcc.exe` but fail when launching
 `cc1.exe` because dependent runtime DLLs are not discoverable. For UCRT64 this
 usually means adding `<msys2>/ucrt64/bin` and `<msys2>/usr/bin`.
-
-If a Python build wrapper constructs a subprocess environment for MSYS2 tools,
-resolve `meson`, `ninja`, `pkg-config`, `objdump`, and similar tools from that
-same environment's `PATH`. Looking only at the parent shell's ambient `PATH`
-can work in GitHub Actions but fail in local reproductions where portable
-Python drives MSYS2 compilers from a nested checkout.
 
 If Boost.Compute is used with current Khronos OpenCL headers, check the
 project's intended OpenCL target. Older plugins may need an explicit
@@ -200,7 +172,7 @@ comparison using the verification runner.
 
 ## Windows Plugin Package Layout
 
-For R77-style Windows packaging, prefer a top-level plugin directory in artifacts
+For API4-compatible Windows packaging, prefer a top-level plugin directory in artifacts
 and release zips:
 
 ```text
@@ -255,4 +227,4 @@ requires it.
 
 After source migration, run the project's normal build. If the project has no
 configured build, compile at least one migrated plugin source file against the
-R77 `include` directory with warnings enabled to catch stale API3 signatures.
+target API4 SDK `include` directory with warnings enabled to catch stale API3 signatures.

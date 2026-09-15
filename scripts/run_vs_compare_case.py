@@ -189,7 +189,7 @@ def main(argv: list[str]) -> int:
     plugin_group.add_argument("--plugin", help="Plugin path to load with core.std.LoadPlugin.")
     plugin_group.add_argument("--no-plugin", action="store_true", help="Do not load a plugin; useful for runner smoke tests.")
     parser.add_argument("--out", required=True, help="JSON report path to write.")
-    parser.add_argument("--label", default="", help="Environment label such as api3-r73 or api4-r77.")
+    parser.add_argument("--label", default="", help="Environment label such as api3-r73 or api4-current.")
     parser.add_argument(
         "--dll-dir",
         action="append",
