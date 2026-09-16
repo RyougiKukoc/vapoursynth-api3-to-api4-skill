@@ -78,6 +78,21 @@ import; ordinary isolated PEP 517 builds should continue to discover the SDK
 from the imported wheel. Test both paths, since an extracted R79 wheel cannot
 be imported in an older glibc container.
 
+For Hatchling custom build hooks, do not assume the `initialize(version, ...)`
+argument is the project version: the standard wheel target supplies `standard`.
+When a Release URL needs the distribution version, read the authoritative
+`[project].version` metadata (or an explicit environment override) and test the
+default URL in an isolated build before publishing. A target-name-derived URL
+such as `releases/download/vstandard/...` must fall back cleanly, but is not the
+intended Release mapping.
+
+VapourSynth wheel pkg-config metadata is sufficient for compilation but need
+not define every optional variable a plugin's install rule expects. In
+particular, do not make wheel packaging depend on `vapoursynth.pc` supplying a
+`libdir` variable merely to choose an install destination that the wheel hook
+does not use. Keep the dependency declaration for headers and compiler flags,
+and choose an ordinary build-system install root for any unused install rule.
+
 Manylinux images can expose a versioned Python interpreter while omitting that
 interpreter's `bin` directory from `PATH`. After installing Meson with
 `$PYTHON -m pip install meson`, invoke it as
