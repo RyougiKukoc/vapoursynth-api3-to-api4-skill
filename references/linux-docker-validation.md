@@ -57,6 +57,26 @@ add an equivalent compatible include directory). Do not mutate the installed
 wheel and do not change Windows-only SDK shims merely to make a Linux fallback
 compile.
 
+## Rust cdylib plugins
+
+Before injecting an SDK or pkg-config shim into a Cargo build, inspect the
+selected VapourSynth Rust binding's build script and link model. Some current
+bindings carry API4 headers and resolve the plugin API dynamically, so their
+`cdylib` plugin build neither reads `vapoursynth.pc` nor links
+`libvapoursynth`. Do not add a fake pkg-config dependency just because a C or
+C++ plugin would need one. Run the ordinary isolated PEP 517 force-build path
+with an unrelated pre-existing `PKG_CONFIG_PATH` and record why that value is
+irrelevant. Conversely, a binding that actually invokes bindgen or links the
+library still needs the normal wheel-SDK discovery described above.
+
+Cargo names native cdylibs by platform: a crate named `plugin_name` normally
+emits `plugin_name.dll` on Windows but `libplugin_name.so` on Linux and
+`libplugin_name.dylib` on macOS. Stage and validate the actual suffix and
+manifest stem from the produced file; never reuse a Windows `.dll` name in an
+ELF or Mach-O payload. Install the repository's declared `rust-version` in the
+conservative builder, then inspect `ldd` and `readelf --version-info` on the
+final Linux artifact before selecting its wheel tag.
+
 Some R79 wheels ship only a versioned native library such as
 `libvapoursynth.so.4`, while their pkg-config metadata requests
 `-lvapoursynth`. If the unversioned linker name is absent, create a temporary
