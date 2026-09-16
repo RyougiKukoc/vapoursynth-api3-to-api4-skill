@@ -53,7 +53,8 @@ An R79 wheel may be too new to install into a conservative manylinux builder
 even though its extracted headers and `vapoursynth.pc` are sufficient to build
 a plugin. In that CI-only situation, download and extract the selected wheel,
 point `PKG_CONFIG_PATH` at the extracted metadata, and invoke the frontend's
-explicit no-isolation dependency-check bypass. Keep `VapourSynth` in
+explicit no-isolation dependency-check bypass (PyPA build currently spells
+this `--no-isolation --skip-dependency-check`). Keep `VapourSynth` in
 `build-system.requires` and separately test an ordinary isolated PEP 517
 install on an R79-capable runtime; the CI bypass is not evidence that users'
 isolated source builds can omit the SDK requirement.
@@ -62,8 +63,11 @@ Manylinux images can expose a versioned Python interpreter while omitting that
 interpreter's `bin` directory from `PATH`. After installing Meson with
 `$PYTHON -m pip install meson`, invoke it as
 `$PYTHON -m mesonbuild.mesonmain` (or explicitly prepend the scripts
-directory) instead of assuming a bare `meson` command is available. Test this
-inside the selected builder image before making it the release path.
+directory) instead of assuming a bare `meson` command is available. Prepend
+that same interpreter directory before Meson configures so its `ninja` entry
+point is discoverable. When enabling `devtoolset`, source its `enable` script
+before `set -u`: it reads otherwise-optional variables such as `MANPATH`.
+Test this inside the selected builder image before making it the release path.
 
 Before committing to a conservative builder, run its Meson configure step
 against the project's declared `cpp_std` or `c_std`. An older builder compiler
