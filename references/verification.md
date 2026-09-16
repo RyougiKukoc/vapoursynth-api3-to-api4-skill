@@ -123,7 +123,8 @@ and compare the output hash, format, and dimensions to the source. This is a
 CUDA runtime/package gate, not a substitute for the API3/API4 behavior
 comparison. If the user release deliberately excludes build-only tooling,
 record that engine execution needs a separately supplied compatible builder;
-do not add build tools to the runtime payload just to make the smoke possible.
+do not add build tools or builder-resource DLLs to the runtime payload just to
+make the smoke possible.
 
 ### GitHub Actions Evidence
 
