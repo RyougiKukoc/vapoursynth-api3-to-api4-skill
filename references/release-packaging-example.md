@@ -153,9 +153,17 @@ except ImportError:
     pass
 else:
     pkgconfig_dir = Path(vapoursynth.__file__).resolve().parent / "pkgconfig"
-    if pkgconfig_dir.is_dir() and "PKG_CONFIG_PATH" not in env:
-        env["PKG_CONFIG_PATH"] = str(pkgconfig_dir)
+    if pkgconfig_dir.is_dir():
+        existing = env.get("PKG_CONFIG_PATH")
+        env["PKG_CONFIG_PATH"] = os.pathsep.join(
+            [str(pkgconfig_dir)] + ([existing] if existing else [])
+        )
 ```
+
+If the hook imports `vapoursynth` to locate this SDK during a normal isolated
+PEP 517 build, put the compatible wheel in `build-system.requires`. A project
+runtime dependency is not installed into the isolated build environment before
+the hook runs.
 
 The hook must then locate platform-native artifacts (for example
 ``libplugin.so`` from Meson on Linux and ``plugin.dll`` on Windows), package

@@ -106,6 +106,12 @@ project's intended OpenCL target. Older plugins may need an explicit
 `CL_TARGET_OPENCL_VERSION` such as `120` to compile without inheriting OpenCL
 3.0 defaults.
 
+Do not assume a distribution's Boost development package exposes Meson or
+pkg-config metadata. For a default path that uses only Boost.Compute headers,
+probe the needed header and use an explicit header-only dependency fallback.
+Keep a strict `dependency('boost', modules: ...)` requirement for modes such as
+an offline cache that actually link Boost libraries.
+
 ## Makefiles
 
 Common places to update:
