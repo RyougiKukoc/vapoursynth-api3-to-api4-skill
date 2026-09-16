@@ -3,9 +3,12 @@ FROM python:3.13-bookworm
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         build-essential \
+        autoconf \
+        automake \
         cmake \
         curl \
         git \
+        libtool \
         pkg-config \
         unzip \
     && rm -rf /var/lib/apt/lists/* \

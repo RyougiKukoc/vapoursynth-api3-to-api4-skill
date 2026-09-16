@@ -29,6 +29,14 @@ container work directory before running a build or a command that can create
 static check. Do not make the source mount writable merely to accommodate
 generated build output.
 
+The baseline explicitly includes Autotools (`autoconf`, `automake`, and
+`libtool`) in addition to CMake and Meson. An Autotools plugin should still
+copy its checkout to the container work directory before invoking `autogen.sh`.
+On a Windows host, normalize that copied shell script to LF if the checkout has
+CRLF endings: a Linux shell otherwise passes a literal carriage return to tools
+such as `autoreconf`. Do this only in the temporary build copy, not by changing
+the repository's Windows working-tree settings.
+
 VapourSynth R79's Linux wheel is tagged `manylinux_2_27_x86_64`, so a release
 plugin intended for that runtime must not claim a lower end-to-end runtime
 floor. A plugin may have lower GLIBC symbol requirements, but that does not
