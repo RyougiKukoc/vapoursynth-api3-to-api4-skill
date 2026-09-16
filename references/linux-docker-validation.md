@@ -75,6 +75,35 @@ metadata should support an explicit root override pointing at the installed or
 extracted `vapoursynth/` directory, then prepend its `pkgconfig` directory to
 the caller's existing `PKG_CONFIG_PATH`.
 
+## TensorRT Linux Runtime Archives
+
+Treat NVIDIA's Linux TensorRT archives and APT runtime packages as a runtime
+closure, not as a single library. They may place libraries under
+`targets/x86_64-linux-gnu/lib`, omit the unversioned development link, and
+provide only a versioned file such as `libnvinfer.so.8.6.1`. A plugin linked
+against the SDK can still request the major SONAME (`libnvinfer.so.8`) at load
+time.
+
+For a portable plugin build:
+
+1. Search both the normal SDK `lib/` and target-specific Linux library
+   directory. When no SDK root is supplied, preserve system `find_library`
+   discovery for distro-based CI builds.
+2. Stage the canonical runtime ELF plus the requested major SONAME. Do not
+   assume developer symlinks survive a wheel/archive extraction; validate the
+   extracted payload with an explicit plugin load.
+3. Keep TensorRT runtime, CUDA/cuBLAS, cuDNN, and builder resources in
+   independently size-checked Release overlays. NVIDIA resources can exceed
+   GitHub's single-asset limit, so do not collapse them into one zip.
+4. Do not accept `LoadPlugin` as CUDA validation. Build a deterministic ONNX
+   identity engine with the selected TensorRT toolchain, request frames through
+   the VapourSynth plugin on a compatible GPU, record hashes/stats, and test a
+   missing/corrupt engine error path separately.
+
+Current TensorRT headers can define `NV_TENSORRT_VERSION` as a C++ scoped
+symbol, which cannot appear in a C preprocessor expression. Guard any such
+test behind a first-level feature macro before testing the version expression.
+
 Some Linux VapourSynth wheels keep `VapourSynth4.h` and `VSHelper4.h` directly
 under `vapoursynth/include`, while legacy cross-platform plugin source uses
 `#include <vapoursynth/VapourSynth4.h>`. Confirm the actual header layout as
