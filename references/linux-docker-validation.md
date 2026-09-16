@@ -157,6 +157,15 @@ the documented `git+https` ref. Inspect pip output to confirm the hook selected
 the platform Release asset rather than silently compiling from source, then
 run the installed-wheel autoload smoke.
 
+When launching that named PEP 508 install from PowerShell through `bash -lc`,
+do not rely on nested double quotes around `"package @ git+https://..."`.
+PowerShell can consume the inner quoting and leave pip with only the package
+name, which may install an unrelated PyPI distribution. In the Bash command,
+escape the two spaces instead so it remains one argument, for example
+`python -m pip install package-name\ @\ git+https://github.com/owner/repo.git@v1.0`.
+The pip log must show both the resolved Git revision and the selected Release
+asset before it counts as the named VCS-install gate.
+
 ## OpenCL payloads
 
 An OpenCL plugin needs two separate checks. Package the OpenCL loader and every
