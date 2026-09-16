@@ -95,6 +95,15 @@ then builds and smoke-loads the packaged artifact. Keep an old MSVC workflow as
 manual compatibility coverage only when it is slower, harder to reproduce, or
 uses legacy SDK setup that should not be the primary path.
 
+When a helper runs under MSYS Python, do not append a host Windows
+`PKG_CONFIG_PATH` to its target-SDK path: MSYS uses `:` as the separator, so a
+drive-letter path can be split and make pkgconf select a different or malformed
+`vapoursynth.pc`. Write a normalized temporary pc file whose `prefix` is the
+extracted `vapoursynth/` directory, then set both `PKG_CONFIG_PATH` and
+`PKG_CONFIG_LIBDIR` to that shim for the Windows helper. This isolation is
+specific to the CI helper; a cross-platform end-user fallback should still
+prepend the discovered SDK directory while preserving its caller's path.
+
 When invoking MSYS2 compilers from PowerShell, `cmd`, or another non-MSYS shell,
 prepend the active MSYS2 environment's `bin` directory and `usr/bin` to `PATH`
 before compiling. Otherwise GCC may find `gcc.exe` but fail when launching
