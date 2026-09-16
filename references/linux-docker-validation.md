@@ -48,6 +48,33 @@ caller-provided entries. Do not treat a pre-existing path as proof that it
 contains `vapoursynth.pc`; hosted CI environments commonly set it for Python
 or unrelated libraries.
 
+## C++ Runtime ABI Closure
+
+Do not combine a distribution ONNX C++ package with a pip-installed OpenVINO
+SDK merely because CMake configuration and plugin loading succeed. OpenVINO
+CMake targets can export a non-default libstdc++ ABI definition such as
+`_GLIBCXX_USE_CXX11_ABI=0`; a distribution ONNX library built with the other
+ABI can leave symbols unresolved until the first model is parsed or rendered.
+
+For an OpenVINO/ONNX plugin release payload:
+
+1. Inspect the compile definitions propagated by the selected OpenVINO CMake
+   target.
+2. Build or pin Protobuf and ONNX with the matching C++ ABI and prefer a
+   static closure when the plugin only needs them internally.
+3. Do not accept an explicit plugin load or `Version` call as runtime proof.
+   Render a deterministic ONNX model in a fresh process and exercise a
+   deterministic invalid-model path as well.
+4. Stage every non-static runtime selected by the final link, then repeat the
+   explicit-load and model-render test from the extracted Release zip rather
+   than the build directory.
+
+For isolated PEP 517 builds, the temporary build environment may not import
+the already installed VapourSynth module. A build hook that needs wheel SDK
+metadata should support an explicit root override pointing at the installed or
+extracted `vapoursynth/` directory, then prepend its `pkgconfig` directory to
+the caller's existing `PKG_CONFIG_PATH`.
+
 Some Linux VapourSynth wheels keep `VapourSynth4.h` and `VSHelper4.h` directly
 under `vapoursynth/include`, while legacy cross-platform plugin source uses
 `#include <vapoursynth/VapourSynth4.h>`. Confirm the actual header layout as
