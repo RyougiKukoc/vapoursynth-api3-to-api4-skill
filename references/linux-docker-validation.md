@@ -94,6 +94,15 @@ default URL in an isolated build before publishing. A target-name-derived URL
 such as `releases/download/vstandard/...` must fall back cleanly, but is not the
 intended Release mapping.
 
+The same metadata rule applies to a custom PEP 517 backend. A platform-native
+wheel tag is only known after the backend has selected a same-platform Release
+payload or completed its native fallback build. If `prepare_metadata_for_build_wheel`
+runs before that choice, write the stable distribution metadata but do not write
+an optimistic platform-specific `WHEEL` file there. Generate `WHEEL` with the
+actual tag during `build_wheel`, or make metadata preparation perform the same
+deterministic selection. Otherwise a missing Release asset can silently produce
+a locally built `linux_x86_64` wheel labelled as the tested manylinux payload.
+
 VapourSynth wheel pkg-config metadata is sufficient for compilation but need
 not define every optional variable a plugin's install rule expects. In
 particular, do not make wheel packaging depend on `vapoursynth.pc` supplying a
