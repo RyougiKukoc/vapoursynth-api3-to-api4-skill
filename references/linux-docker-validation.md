@@ -70,6 +70,14 @@ this `--no-isolation --skip-dependency-check`). Keep `VapourSynth` in
 install on an R79-capable runtime; the CI bypass is not evidence that users'
 isolated source builds can omit the SDK requirement.
 
+If a hook normally imports `vapoursynth` to find its SDK, make that location
+overrideable for the conservative builder, for example with a
+`<PLUGIN>_VAPOURSYNTH_ROOT` environment variable pointing directly at the
+extracted wheel's `vapoursynth/` directory. Use that root before attempting an
+import; ordinary isolated PEP 517 builds should continue to discover the SDK
+from the imported wheel. Test both paths, since an extracted R79 wheel cannot
+be imported in an older glibc container.
+
 Manylinux images can expose a versioned Python interpreter while omitting that
 interpreter's `bin` directory from `PATH`. After installing Meson with
 `$PYTHON -m pip install meson`, invoke it as
