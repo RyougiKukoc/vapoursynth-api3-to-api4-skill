@@ -49,6 +49,17 @@ add an equivalent compatible include directory). Do not mutate the installed
 wheel and do not change Windows-only SDK shims merely to make a Linux fallback
 compile.
 
+Some R79 wheels ship only a versioned native library such as
+`libvapoursynth.so.4`, while their pkg-config metadata requests
+`-lvapoursynth`. If the unversioned linker name is absent, create a temporary
+SDK shim inside the build directory: copy the wheel library, add a
+`libvapoursynth.so` linker-name symlink (or copy on filesystems without
+symlink support), and write a replacement `vapoursynth.pc` pointing to that
+shim and the wheel headers. Prepend the shim and the wheel metadata to
+`PKG_CONFIG_PATH`, retaining caller entries. Never alter the installed wheel,
+and do not bundle `libvapoursynth` into the plugin payload: the installed
+VapourSynth runtime supplies it.
+
 An R79 wheel may be too new to install into a conservative manylinux builder
 even though its extracted headers and `vapoursynth.pc` are sufficient to build
 a plugin. In that CI-only situation, download and extract the selected wheel,
@@ -114,6 +125,22 @@ For a Release-backed VCS package, run a second clean-container install using
 the documented `git+https` ref. Inspect pip output to confirm the hook selected
 the platform Release asset rather than silently compiling from source, then
 run the installed-wheel autoload smoke.
+
+## OpenCL payloads
+
+An OpenCL plugin needs two separate checks. Package the OpenCL loader and every
+non-system library identified by the payload's dynamic-dependency closure, with
+an `$ORIGIN` runtime search path when those libraries sit beside the plugin.
+The vendor ICD remains a host requirement and must not be copied from a build
+machine into a generic payload.
+
+Require an explicit accelerator-mode filter call followed by `get_frame()` to
+claim OpenCL validation. A successful `LoadPlugin`, an installed loader, or a
+CUDA-visible GPU is not evidence of an OpenCL backend: Linux GPU containers
+often lack both `libOpenCL.so` and `/etc/OpenCL/vendors/*.icd`. Smoke scripts
+should support a strict mode that fails without a real frame and otherwise
+record the exact unavailable-platform error. Report that condition as an
+unvalidated GPU gate, never as a CPU fallback or GPU success.
 
 ## CUDA RTC payloads
 
