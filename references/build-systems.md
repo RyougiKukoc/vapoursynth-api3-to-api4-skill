@@ -112,6 +112,12 @@ probe the needed header and use an explicit header-only dependency fallback.
 Keep a strict `dependency('boost', modules: ...)` requirement for modes such as
 an offline cache that actually link Boost libraries.
 
+Conservative manylinux images can also ship a Boost version that lacks
+Boost.Compute entirely. When building a Boost.Compute plugin there, download a
+fixed modern Boost source archive, use its headers only, and pass that root
+through the project's existing `boost_root` or equivalent Meson option. Do not
+silently build a Release payload against an arbitrary newer runner-host Boost.
+
 ## Makefiles
 
 Common places to update:
