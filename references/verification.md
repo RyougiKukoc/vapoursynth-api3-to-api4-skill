@@ -101,6 +101,39 @@ installation, also test a clean environment with `VAPOURSYNTH_EXTRA_PLUGIN_PATH`
 pointing at the package parent directory or with the package installed under the
 environment's `vapoursynth/plugins` directory.
 
+### CUDA Release Payloads
+
+Hosted Windows runners usually cannot perform CUDA inference because they lack
+an NVIDIA display driver. This is not evidence that a maintainer workstation
+cannot. Before declaring a CUDA runtime check blocked, probe the local host
+with `nvidia-smi` and inspect the available VapourSynth/Python environment.
+
+For every mutually exclusive CUDA VCS ref, use a separate virtual environment
+or extracted plugin directory. Never overlay CUDA dependency lines such as
+`cu121` and `cu129` in one site-packages tree. Download the exact Release
+assets, compare their SHA-256 values with GitHub's Release digests, then load
+the plugin with both its root and runtime-DLL directory in the DLL search path.
+Query its version and device-properties function to prove the selected runtime
+actually reaches the driver and target GPU.
+
+When the package contains a compatible engine builder and the host has a
+matching GPU, add a minimal real inference gate: build a deterministic identity
+ONNX engine, render one small floating-point frame through the packaged plugin,
+and compare the output hash, format, and dimensions to the source. This is a
+CUDA runtime/package gate, not a substitute for the API3/API4 behavior
+comparison. If the user release deliberately excludes build-only tooling,
+record that engine execution needs a separately supplied compatible builder;
+do not add build tools to the runtime payload just to make the smoke possible.
+
+### GitHub Actions Evidence
+
+Use GitHub Actions and Release data as terminal evidence, not frequent status
+polling. If `gh` is not on `PATH` on Windows, probe and invoke
+`C:\Program Files\GitHub CLI\gh.exe` directly before falling back to a web
+workflow. Use `gh run view` for the relevant commit/tag after the expected
+build window, then record the run URL, completed conclusion, artifact/release
+digest, and exact job steps that passed.
+
 For release automation, a normal branch push may build and pack the zip while
 skipping the release-upload step. That is expected when upload is gated on tag
 or release events. Verify release upload by checking the workflow condition and,
