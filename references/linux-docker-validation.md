@@ -135,6 +135,25 @@ disable the optional OpenMP path for the Linux release and Linux fallback,
 document the serial-performance tradeoff, and verify its frame output rather
 than shipping a runtime library that only passes a loader check.
 
+## FFTW payloads
+
+An FFTW-based Linux release must either package every non-system FFTW runtime
+library in its dependency closure or statically link the exact float/double and
+thread variants it uses. For a static FFTW build intended for a plugin `.so`,
+compile FFTW with PIC. Then inspect the produced plugin with `ldd` and fail the
+release build if an unexpected `libfftw` dependency remains.
+
+Do not assume an upstream static FFTW install provides pkg-config metadata for
+the separately built threads archive. FFTW 3.3.10 installs `fftw3f.pc` but can
+omit `fftw3f_threads.pc`, even though `fftwf_init_threads` requires the latter.
+When the conservative builder uses a private FFTW prefix, write a private
+`fftw3f_threads.pc` that names the complete closure, typically
+`-lfftw3f_threads -lfftw3f -lm -lpthread`, before Meson configures. Distro
+packages may resolve the thread library through normal linker paths, but that
+is not evidence that a private CI prefix will. Keep this metadata builder-only;
+ordinary source fallbacks should declare their FFTW development dependency
+rather than silently downloading or bundling a host library.
+
 ## Release payload gate
 
 For a Linux Release zip, validate the actual uploaded asset, not a local build
