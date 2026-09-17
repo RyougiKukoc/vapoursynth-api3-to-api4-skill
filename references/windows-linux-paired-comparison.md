@@ -77,3 +77,25 @@ Store the reports and extracted-asset digest evidence outside source scanning
 directories (for example, `verification-*`) so API3 baselines do not affect
 the migration scanner. After changing the runner, case library, or optional
 Dockerfile, run `python scripts/self_test.py` before recording the result.
+
+## Observed Platform Cases
+
+These results are reference evidence, not a substitute for testing a new
+Release tag:
+
+- BM3DCUDA cu129 ran on the same RTX 3090 Ti in Windows and Linux. The R73
+  baseline and API4 Windows output were byte-identical. Linux CUDA output had
+  a maximum absolute float32 difference of `2.9802322387695312e-08` and mean
+  absolute difference of `2.421438694000244e-08`; preserve it as a quantified
+  cross-platform compiler/runtime difference rather than a strict match.
+- KNLMeansCL 1.1.2 loaded in the optional PoCL container but failed when
+  creating a node with `oclUtilsGetPlaformDeviceIDs: CL_INVALID_VALUE`. Its
+  platform-version probe uses a fixed 64-byte buffer while PoCL reports a
+  101-byte platform version. API3/API4 Windows on NVIDIA OpenCL matched
+  strictly. Keep the Linux failed-node evidence until the utility handles
+  variable-length OpenCL info strings and the fixed payload is retested.
+- FFT3DFilter R2.1 had no available API3 baseline. Its API4 Windows/Linux
+  result differed in 36 chroma samples across the selected frames, with a
+  maximum integer difference of one LSB; dimensions, frame properties, and
+  documented error behavior matched. CFL 1.0.2 also had no API3 baseline and
+  its API4 Windows/Linux report matched strictly.
