@@ -259,12 +259,19 @@ def test_report_compare(root: Path) -> None:
     assert tolerant_json["diff_count"] == 0
 
 
+def test_compare_runner_help() -> None:
+    help_result = run("run_vs_compare_case.py", "--help")
+    assert "--case-id" in help_result.stdout
+    assert "--arrays-out" in help_result.stdout
+
+
 def main() -> int:
     with tempfile.TemporaryDirectory(prefix="vpy-api4-self-test-") as temp:
         root = Path(temp)
         test_scan_report_and_rewrite(root)
         test_package_checker(root)
         test_report_compare(root)
+        test_compare_runner_help()
     print("self-test passed")
     return 0
 

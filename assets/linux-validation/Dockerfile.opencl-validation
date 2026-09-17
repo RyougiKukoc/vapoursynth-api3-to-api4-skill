@@ -1,0 +1,8 @@
+FROM vpy-api4-vs79-validation:latest
+
+# Docker Desktop's Linux NVIDIA bridge exposes CUDA but not an OpenCL ICD.
+# This optional validation image provides a deterministic CPU OpenCL platform
+# for Release payload smoke/comparison cases.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ocl-icd-libopencl1 pocl-opencl-icd \
+    && rm -rf /var/lib/apt/lists/*

@@ -106,6 +106,10 @@ review.
    plugin, a Linux Release payload, a glibc policy, or a Release-backed Linux
    VCS install. Use its Dockerfile as the baseline environment before adding
    a target plugin.
+   Read `references/windows-linux-paired-comparison.md` when an R73/API3
+   Windows baseline and API4 Windows/Linux payloads are both available. It
+   covers Release digest checks, isolated three-way reports, device-runtime
+   evidence, and handling of reproducible floating-point differences.
 6. Migrate in this order:
    includes and types, map/property calls, entry point and registration strings,
    filter creation/lifecycle, format handling, helper functions, build files.

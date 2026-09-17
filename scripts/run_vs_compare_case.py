@@ -14,7 +14,9 @@ import hashlib
 import json
 import os
 import runpy
+import site
 import sys
+import sysconfig
 from pathlib import Path
 from typing import Any
 
@@ -127,7 +129,13 @@ def plane_stats_report(core: Any, clip: Any, n: int) -> list[dict[str, Any]]:
     return stats
 
 
-def clip_report(core: Any, name: str, clip: Any, frames: list[int]) -> dict[str, Any]:
+def clip_report(
+    core: Any,
+    name: str,
+    clip: Any,
+    frames: list[int],
+    arrays: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     info = {
         "name": name,
         "node": {
@@ -144,6 +152,11 @@ def clip_report(core: Any, name: str, clip: Any, frames: list[int]) -> dict[str,
             frame_info = frame_report(frame, n)
             frame_info["plane_stats"] = plane_stats_report(core, clip, n)
             info["frames"].append(frame_info)
+            if arrays is not None:
+                import numpy as np  # pylint: disable=import-outside-toplevel
+
+                for plane in range(frame.format.num_planes):
+                    arrays[f"{name}_n{n}_p{plane}"] = np.ascontiguousarray(np.asarray(frame[plane]))
         finally:
             close = getattr(frame, "close", None)
             if close:
@@ -175,8 +188,11 @@ def error_report(name: str, callback: Any) -> dict[str, Any]:
     }
 
 
-def load_case(case_path: Path, plugin_path: str, label: str) -> dict[str, Any]:
-    namespace = runpy.run_path(str(case_path), init_globals={"PLUGIN_PATH": plugin_path, "LABEL": label})
+def load_case(case_path: Path, plugin_path: str, label: str, case_id: str) -> dict[str, Any]:
+    namespace = runpy.run_path(
+        str(case_path),
+        init_globals={"PLUGIN_PATH": plugin_path, "LABEL": label, "CASE_ID": case_id},
+    )
     if "make_cases" not in namespace:
         raise RuntimeError("case file must define make_cases(core, plugin_path)")
     return namespace
@@ -190,6 +206,15 @@ def main(argv: list[str]) -> int:
     plugin_group.add_argument("--no-plugin", action="store_true", help="Do not load a plugin; useful for runner smoke tests.")
     parser.add_argument("--out", required=True, help="JSON report path to write.")
     parser.add_argument("--label", default="", help="Environment label such as api3-r73 or api4-current.")
+    parser.add_argument(
+        "--case-id",
+        default="",
+        help="Optional case selector exposed to the case file as CASE_ID.",
+    )
+    parser.add_argument(
+        "--arrays-out",
+        help="Optional .npz path for raw output planes; requires NumPy in the target environment.",
+    )
     parser.add_argument(
         "--dll-dir",
         action="append",
@@ -209,6 +234,16 @@ def main(argv: list[str]) -> int:
         dll_dirs = [Path(p).resolve() for p in args.dll_dir]
         if args.plugin:
             dll_dirs.insert(0, Path(args.plugin).resolve().parent)
+        # MinGW Release payloads can depend on the VapourSynth wheel's own
+        # runtime DLLs. Match the established artifact smoke search paths.
+        dll_dirs.extend(
+            [
+                Path(sys.executable).resolve().parent,
+                Path(sysconfig.get_paths().get("platlib", "")),
+                Path(sysconfig.get_paths().get("purelib", "")),
+                *(Path(path) for path in site.getsitepackages()),
+            ]
+        )
         for dll_dir in dll_dirs:
             if dll_dir.exists():
                 dll_handles.append(add_dll_directory(str(dll_dir)))
@@ -222,7 +257,7 @@ def main(argv: list[str]) -> int:
             core.std.LoadPlugin(args.plugin)
 
         plugin_path = args.plugin or ""
-        namespace = load_case(Path(args.case).resolve(), plugin_path, args.label)
+        namespace = load_case(Path(args.case).resolve(), plugin_path, args.label, args.case_id)
         case_data = namespace["make_cases"](core, plugin_path)
         clip_cases = case_data.get("clips", [])
         error_cases = case_data.get("errors", [])
@@ -237,12 +272,13 @@ def main(argv: list[str]) -> int:
             "clips": [],
             "errors": [],
         }
+        arrays: dict[str, Any] | None = {} if args.arrays_out else None
 
         for case in clip_cases:
             name = case["name"]
             clip = case["clip"]
             frames = list(case.get("frames", [0]))
-            report["clips"].append(clip_report(core, name, clip, frames))
+            report["clips"].append(clip_report(core, name, clip, frames, arrays))
 
         for case in error_cases:
             report["errors"].append(error_report(case["name"], case["call"]))
@@ -250,6 +286,12 @@ def main(argv: list[str]) -> int:
         out_path = Path(args.out)
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
+        if arrays is not None:
+            import numpy as np  # pylint: disable=import-outside-toplevel
+
+            arrays_path = Path(args.arrays_out)
+            arrays_path.parent.mkdir(parents=True, exist_ok=True)
+            np.savez(arrays_path, **arrays)
     finally:
         if policy is not None:
             policy.close()
